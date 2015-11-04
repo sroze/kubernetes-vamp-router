@@ -48,7 +48,12 @@ func (c *Client) GetRoute(name string) (*Route, error) {
 	return &route, c.Get(&route, "/v1/routes/"+name)
 }
 
+func (c *Client) UpdateRoute(route *Route) (*Route, error) {
+	var resp errorResp
+	return route, c.Put(&resp, "/v1/routes/"+route.Name, route)
+}
+
 func (c *Client) CreateRoute(route *Route) (*Route, error) {
-	var created Route
-	return &created, c.Post(&created, "/v1/routes", route)
+	var resp errorResp
+	return route, c.Post(&resp, "/v1/routes", route)
 }
