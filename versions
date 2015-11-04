@@ -15,8 +15,6 @@ git fa8ad6fec33561be4280a8f0514318c79d7f6cb6 github.com/prometheus/client_model 
 git 4fdc91a58c9d3696b982e8a680f4997403132d44 github.com/prometheus/common https://github.com/prometheus/common
 git 406e5b7bfd8201a36e2bb5f7bdae0b03380c2ce8 github.com/prometheus/procfs https://github.com/prometheus/procfs
 git 08b1a584251b5b62f458943640fc8ebd4d50aaa5 github.com/spf13/pflag https://github.com/spf13/pflag
-git bb030300154db8515a5f8348abc838a797166842 github.com/sroze/kubernetes-load-balancer-proxifier git@github.com:sroze/kubernetes-load-balancer-proxifier.git
-git 5e43fad39c0bad3d8b8f3abe3ec6ed5f42e735b3 github.com/sroze/kubernetes-vamp-router 
 git 8a2a3a8c488c3ebd98f422a965260278267a0551 github.com/ugorji/go https://github.com/ugorji/go
 git 575fdbe86e5dd89229707ebec0575ce7d088a4a6 golang.org/x/crypto https://go.googlesource.com/crypto
 git b4e17d61b15679caf2335da776c614169a1b4643 golang.org/x/net https://go.googlesource.com/net
