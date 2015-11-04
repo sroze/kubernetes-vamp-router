@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"k8s.io/kubernetes/pkg/api"
 	client "github.com/kubernetes/kubernetes/pkg/client/unversioned"
@@ -9,27 +10,15 @@ import (
 	"k8s.io/kubernetes/pkg/fields"
 	"k8s.io/kubernetes/pkg/watch"
 
-	"os"
+	"github.com/sroze/kubernetes-vamp-router/vamprouter"
+
 )
 
 func main() {
-	clusterAddress := os.Getenv("CLUSTER_ADDRESS")
-	rootDns := os.Getenv("ROOT_DNS_DOMAIN")
-	if rootDns == "" {
-		log.Fatalln("You need to precise your root DNS name with the `ROOT_DNS_DOMAIN` environment variable")
-	}
+	client := CreateClusterClient()
+	serviceUpdater := CreateServiceUpdater(client)
 
-	config := client.Config{
-		Host: clusterAddress,
-		Insecure: os.Getenv("INSECURE_CLUSTER") == "true",
-	}
-
-	c, err := client.New(&config)
-	if err != nil {
-		log.Fatalln("Can't connect to Kubernetes API:", err)
-	}
-
-	w, err := c.Services(api.NamespaceAll).Watch(labels.Everything(), fields.Everything(), api.ListOptions{})
+	w, err := client.Services(api.NamespaceAll).Watch(labels.Everything(), fields.Everything(), api.ListOptions{})
 	if err != nil {
 		log.Fatalln("Unable to watch services:", err)
 	}
@@ -45,50 +34,55 @@ func main() {
 
 		if event.Type == watch.Added || event.Type == watch.Modified {
 			if (ShouldUpdateServiceRoute(service)) {
-				UpdateServiceRouting(service)
+				serviceUpdater.UpdateServiceRouting(service)
 			}
 		} else if event.Type == watch.Deleted {
-			RemoveServiceRouting(service)
+			serviceUpdater.RemoveServiceRouting(service)
 		}
 	}
 }
 
-func ShouldUpdateServiceRoute(service *api.Service) bool {
-	if service.Spec.Type != api.ServiceTypeLoadBalancer {
-		log.Println("Skipping service", service.ObjectMeta.Name, "as it is not a LoadBalancer")
-
-		return false
+func CreateClusterClient() *client.Client {
+	clusterAddress := os.Getenv("CLUSTER_API_ADDRESS")
+	if clusterAddress == "" {
+		log.Fatalln("You need to precise the address of Kubernetes API with the `CLUSTER_API_ADDRESS` environment variable")
 	}
 
-	// If there's an IP and/or DNS address in the load balancer status, skip it
-	if ServiceHasLoadBalancerAddress(service) {
-		log.Println("Skipping service", service.ObjectMeta.Name, "as it already have an address")
-
-		return false
+	config := client.Config{
+		Host: clusterAddress,
+		Insecure: os.Getenv("INSECURE_CLUSTER") == "true",
 	}
 
-	return true
-}
-
-func ServiceHasLoadBalancerAddress(service *api.Service) bool {
-	if len(service.Status.LoadBalancer.Ingress) == 0 {
-		return false
+	c, err := client.New(&config)
+	if err != nil {
+		log.Fatalln("Can't connect to Kubernetes API:", err)
 	}
 
-	for _, ingress := range service.Status.LoadBalancer.Ingress {
-		if ingress.IP != "" || ingress.Hostname != "" {
-			return true
-		}
+	return c
+}
+
+func CreateRouterClient() *vamprouter.Client {
+	routerAddress := os.Getenv("ROUTER_API_ADDRESS")
+	if routerAddress == "" {
+		log.Fatalln("You need to precise the address of Vamp Router API with the `ROUTER_API_ADDRESS` environment variable")
 	}
 
-	return false
+	return &vamprouter.Client{
+		URL: routerAddress,
+	}
 }
 
-func UpdateServiceRouting(service *api.Service) {
-	log.Println("Should update service routing")
-}
+func CreateServiceUpdater(client *client.Client) *ServiceUpdater {
+	rootDns := os.Getenv("ROOT_DNS_DOMAIN")
+	if rootDns == "" {
+		log.Fatalln("You need to precise your root DNS name with the `ROOT_DNS_DOMAIN` environment variable")
+	}
 
-func RemoveServiceRouting(service *api.Service) {
-	log.Println("Should remove service routing")
+	return &ServiceUpdater{
+		ClusterClient: client,
+		RouterClient: CreateRouterClient(),
+		Configuration: Configuration{
+			RootDns: rootDns,
+		},
+	}
 }
-
