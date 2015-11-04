@@ -11,8 +11,10 @@ API when a service is created or updated (if needed). As well, when the service 
 
 First of all, start your Vamp router on your front-end server:
 ```
-docker run -d --name=vamp-router \
+docker run -d \
+    --name=vamp-router \
     --net=host \
+    --restart=always \
     magneticio/vamp-router:latest
 ```
 
@@ -42,5 +44,9 @@ variables that the container is reading:
 - `INSECURE_CLUSTER`: If the value is `true`, then the SSL certification won't be checked. This should be used for
   development purposes only!
 
+## Where to run these containers?
 
+You have to run them on a machine which is in the cluster network and have kube-proxy running. The easiest way is to
+run them on a node of your cluster but running them outside just requires you to configure the networking and install
+kube-proxy.
 

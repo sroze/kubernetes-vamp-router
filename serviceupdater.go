@@ -91,6 +91,11 @@ func (su *ServiceUpdater) CreateRoute(service *api.Service) (*vamprouter.Route, 
 			Rate: 1000,
 			ExpiryTime: "15s",
 		},
+		TcpQuota: vamprouter.Quota{
+			SampleWindow: "1s",
+			Rate: 5000,
+			ExpiryTime: "10s",
+		},
 		Services: []vamprouter.Service{
 			vamprouter.Service{
 				Name: "none",
