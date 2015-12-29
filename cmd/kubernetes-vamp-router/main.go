@@ -11,7 +11,7 @@ import (
 	"k8s.io/kubernetes/pkg/watch"
 
 	"github.com/sroze/kubernetes-vamp-router/vamprouter"
-
+	k8svamprouter "github.com/sroze/kubernetes-vamp-router"
 )
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 		}
 
 		if event.Type == watch.Added || event.Type == watch.Modified {
-			if (ShouldUpdateServiceRoute(service)) {
+			if (k8svamprouter.ShouldUpdateServiceRoute(service)) {
 				serviceUpdater.UpdateServiceRouting(service)
 			}
 		} else if event.Type == watch.Deleted {
@@ -72,16 +72,16 @@ func CreateRouterClient() *vamprouter.Client {
 	}
 }
 
-func CreateServiceUpdater(client *client.Client) *ServiceUpdater {
+func CreateServiceUpdater(client *client.Client) *k8svamprouter.ServiceUpdater {
 	rootDns := os.Getenv("ROOT_DNS_DOMAIN")
 	if rootDns == "" {
 		log.Fatalln("You need to precise your root DNS name with the `ROOT_DNS_DOMAIN` environment variable")
 	}
 
-	return &ServiceUpdater{
+	return &k8svamprouter.ServiceUpdater{
 		ClusterClient: client,
 		RouterClient: CreateRouterClient(),
-		Configuration: Configuration{
+		Configuration: k8svamprouter.Configuration{
 			RootDns: rootDns,
 		},
 	}

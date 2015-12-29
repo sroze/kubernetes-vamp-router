@@ -1,4 +1,4 @@
-package main
+package k8svamprouter
 
 import (
 	client "github.com/kubernetes/kubernetes/pkg/client/unversioned"
