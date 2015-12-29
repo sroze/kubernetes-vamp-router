@@ -51,6 +51,42 @@ func(client *InMemoryVampRouterClient) CreateRoute(route *vamprouter.Route) (*va
 
 var updater *ServiceUpdater
 
+func GetCreatedServiceInRoute(route *vamprouter.Route, serviceName string) (vamprouter.Service, error) {
+	for _, service := range route.Services {
+		if service.Name == serviceName {
+			return service, nil
+		}
+	}
+
+	return vamprouter.Service{}, errors.New("Service not found")
+}
+
+func GetCreatedFilterInRoute(route *vamprouter.Route, filterName string) (vamprouter.Filter, error) {
+	for _, filter := range route.Filters {
+		if filter.Name == filterName {
+			return filter, nil
+		}
+	}
+
+	return vamprouter.Filter{}, errors.New("Filter not found")
+}
+
+/**
+ * GIVEN
+ */
+func aVampRouteNamedAlreadyExists(routeName string) error {
+	_, err := updater.RouterClient.CreateRoute(&vamprouter.Route{
+		Name: "http",
+		Port: 80,
+		Protocol: vamprouter.ProtocolHttp,
+	})
+
+	return err
+}
+
+/**
+ * WHEN
+ */
 func aKsServiceNamedIsCreatedInTheNamespace(serviceName string, namespaceName string) error {
 	return updater.CreateServiceRoute(&api.Service{
 		ObjectMeta: api.ObjectMeta{
@@ -59,6 +95,10 @@ func aKsServiceNamedIsCreatedInTheNamespace(serviceName string, namespaceName st
 		},
 	})
 }
+
+/**
+ * THEN
+ */
 
 func theVampServiceShouldBeCreated(serviceName string) error {
 	route, err := updater.RouterClient.GetRoute("http")
@@ -74,16 +114,25 @@ func theVampServiceShouldBeCreated(serviceName string) error {
 	return nil
 }
 
-func GetCreatedServiceInRoute(route *vamprouter.Route, serviceName string) (vamprouter.Service, error) {
-	for _, service := range route.Services {
-		if service.Name == serviceName {
-			return service, nil
-		}
-	}
+func theVampRouteShouldBeCreated(routeName string) error {
+	_, err := updater.RouterClient.GetRoute(routeName)
 
-	return vamprouter.Service{}, errors.New("Service not found")
+	return err
 }
 
+func theVampFilterNamedShouldBeCreated(filterName string) error {
+	route, err := updater.RouterClient.GetRoute("http")
+	if err != nil {
+		return err
+	}
+
+	_, err = GetCreatedFilterInRoute(route, filterName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func featureContext(s *godog.Suite) {
 	s.BeforeScenario(func(interface{}) {
@@ -100,4 +149,7 @@ func featureContext(s *godog.Suite) {
 
 	s.Step(`^a k8s service named "([^"]*)" is created in the namespace "([^"]*)"$`, aKsServiceNamedIsCreatedInTheNamespace)
 	s.Step(`^the vamp service "([^"]*)" should be created$`, theVampServiceShouldBeCreated)
+	s.Step(`^the vamp route "([^"]*)" should be created$`, theVampRouteShouldBeCreated)
+	s.Step(`^a vamp route named "([^"]*)" already exists$`, aVampRouteNamedAlreadyExists)
+	s.Step(`^the vamp filter named "([^"]*)" should be created$`, theVampFilterNamedShouldBeCreated)
 }
