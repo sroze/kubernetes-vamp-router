@@ -13,6 +13,10 @@ import (
 	"strings"
 )
 
+type Interface interface {
+	RouteRepository
+}
+
 type Client struct {
 	// HTTP is the Client's internal http.Client, handling HTTP requests
 	HTTP *http.Client

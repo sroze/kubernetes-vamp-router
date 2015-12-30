@@ -5,13 +5,13 @@ import (
 	"os"
 
 	"k8s.io/kubernetes/pkg/api"
-	client "github.com/kubernetes/kubernetes/pkg/client/unversioned"
+	client "k8s.io/kubernetes/pkg/client/unversioned"
 	"k8s.io/kubernetes/pkg/labels"
 	"k8s.io/kubernetes/pkg/fields"
 	"k8s.io/kubernetes/pkg/watch"
 
 	"github.com/sroze/kubernetes-vamp-router/vamprouter"
-
+	k8svamprouter "github.com/sroze/kubernetes-vamp-router"
 )
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 		}
 
 		if event.Type == watch.Added || event.Type == watch.Modified {
-			if (ShouldUpdateServiceRoute(service)) {
+			if (k8svamprouter.ShouldUpdateServiceRoute(service)) {
 				serviceUpdater.UpdateServiceRouting(service)
 			}
 		} else if event.Type == watch.Deleted {
@@ -42,7 +42,7 @@ func main() {
 	}
 }
 
-func CreateClusterClient() *client.Client {
+func CreateClusterClient() client.Interface {
 	clusterAddress := os.Getenv("CLUSTER_API_ADDRESS")
 	if clusterAddress == "" {
 		log.Fatalln("You need to precise the address of Kubernetes API with the `CLUSTER_API_ADDRESS` environment variable")
@@ -72,16 +72,18 @@ func CreateRouterClient() *vamprouter.Client {
 	}
 }
 
-func CreateServiceUpdater(client *client.Client) *ServiceUpdater {
+func CreateServiceUpdater(client client.Interface) *k8svamprouter.ServiceUpdater {
 	rootDns := os.Getenv("ROOT_DNS_DOMAIN")
 	if rootDns == "" {
 		log.Fatalln("You need to precise your root DNS name with the `ROOT_DNS_DOMAIN` environment variable")
 	}
 
-	return &ServiceUpdater{
-		ClusterClient: client,
+	return &k8svamprouter.ServiceUpdater{
+		ServiceRepository: &k8svamprouter.KubernetesServiceRepository{
+			Client: client,
+		},
 		RouterClient: CreateRouterClient(),
-		Configuration: Configuration{
+		Configuration: k8svamprouter.Configuration{
 			RootDns: rootDns,
 		},
 	}

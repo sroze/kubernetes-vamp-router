@@ -1,4 +1,4 @@
-package main
+package k8svamprouter
 
 import (
 	"k8s.io/kubernetes/pkg/api"

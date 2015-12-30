@@ -1,5 +1,11 @@
 package vamprouter
 
+type RouteRepository interface {
+	GetRoute(name string) (*Route, error)
+	UpdateRoute(route *Route) (*Route, error)
+	CreateRoute(route *Route) (*Route, error)
+}
+
 type Filter struct {
 	Name string `json:"name"`
 	Condition string `json:"condition"`

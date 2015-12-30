@@ -1,11 +1,14 @@
-package main
+package k8svamprouter
 
 import (
-	client "github.com/kubernetes/kubernetes/pkg/client/unversioned"
 	"k8s.io/kubernetes/pkg/api"
 	"log"
 	"github.com/sroze/kubernetes-vamp-router/vamprouter"
 )
+
+type ServiceRepository interface {
+	Update(service *api.Service) (*api.Service, error)
+}
 
 type Configuration struct {
 	RootDns string
@@ -13,10 +16,10 @@ type Configuration struct {
 
 type ServiceUpdater struct {
 	// Kubernetes client
-	ClusterClient *client.Client
+	ServiceRepository ServiceRepository
 
 	// Vamp Router client
-	RouterClient *vamprouter.Client
+	RouterClient vamprouter.Interface
 
 	// Updater configuration
     Configuration Configuration
@@ -49,7 +52,7 @@ func (su *ServiceUpdater) UpdateServiceRouting(service *api.Service) error {
 		},
 	}
 
-	_, err := su.ClusterClient.Services(service.ObjectMeta.Namespace).Update(service)
+	_, err := su.ServiceRepository.Update(service)
 	if err != nil {
 		log.Println("Error while updating the service:", err)
 
