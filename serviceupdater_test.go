@@ -17,6 +17,21 @@ func(repository *InMemoryServiceRepository) Update(service *api.Service) (*api.S
 
 type InMemoryVampRouterClient struct  {
 	Routes map[string]*vamprouter.Route
+	UpdatedRoutes []*vamprouter.Route
+}
+
+func NewInMemoryVampRouterClient() *InMemoryVampRouterClient {
+	client := &InMemoryVampRouterClient{
+		Routes: make(map[string]*vamprouter.Route),
+	}
+
+	client.Clear()
+
+	return client
+}
+
+func(client *InMemoryVampRouterClient) Clear() {
+	client.UpdatedRoutes = []*vamprouter.Route{}
 }
 
 func(client *InMemoryVampRouterClient) GetRoute(name string) (*vamprouter.Route, error) {
@@ -151,6 +166,28 @@ func theVampFilterNamedShouldBeCreated(filterName string) error {
 	return err
 }
 
+func theVampRouteShouldNotBeUpdated() error {
+	client := updater.RouterClient.(*InMemoryVampRouterClient)
+	defer client.Clear()
+
+	if len(client.UpdatedRoutes) > 0 {
+		return errors.New(fmt.Sprintf("Found %d updated routes will expecting 0", len(client.UpdatedRoutes)))
+	}
+
+	return nil
+}
+
+func theVampRouteShouldBeUpdated() error {
+	client := updater.RouterClient.(*InMemoryVampRouterClient)
+	defer client.Clear()
+
+	if len(client.UpdatedRoutes) != 0 {
+		return errors.New("Found 0 updated routes will expecting at least one")
+	}
+
+	return nil
+}
+
 func theVampServiceShouldOnlyContainTheBackend(serviceName string, IP string) error {
 	route, err := updater.RouterClient.GetRoute("http")
 	if err != nil {
@@ -177,9 +214,7 @@ func featureContext(s *godog.Suite) {
 	s.BeforeScenario(func(interface{}) {
 		updater = &ServiceUpdater{
 			ServiceRepository: &InMemoryServiceRepository{},
-			RouterClient: &InMemoryVampRouterClient{
-				Routes: make(map[string]*vamprouter.Route),
-			},
+			RouterClient: NewInMemoryVampRouterClient(),
 			Configuration: Configuration{
 				RootDns: "example.com",
 			},
@@ -194,4 +229,6 @@ func featureContext(s *godog.Suite) {
 	s.Step(`^the vamp filter named "([^"]*)" should be created$`, theVampFilterNamedShouldBeCreated)
 	s.Step(`^the vamp service "([^"]*)" should only contain the backend "([^"]*)"$`, theVampServiceShouldOnlyContainTheBackend)
 	s.Step(`^a k8s service named "([^"]*)" is updated in the namespace "([^"]*)" with the IP "([^"]*)"$`, aKsServiceNamedIsUpdatedInTheNamespaceWithTheIP)
+	s.Step(`^the vamp route should not be updated$`, theVampRouteShouldNotBeUpdated)
+	s.Step(`^the vamp route should be updated$`, theVampRouteShouldBeUpdated)
 }
