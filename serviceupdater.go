@@ -69,36 +69,45 @@ func (su *ServiceUpdater) RemoveServiceRouting(service *api.Service) {
 }
 
 func (su *ServiceUpdater) UpdateRouteIfNeeded(service *api.Service) error {
-	routeName := su.GetServiceRouteName(service)
-	route, err := su.RouterClient.GetRoute("http")
+	route, err := su.GetOrCreateHttpRoute()
 	if err != nil {
-		route, err = su.RouterClient.CreateRoute(&vamprouter.Route{
-			Name: "http",
-			Port: 80,
-			Protocol: vamprouter.ProtocolHttp,
-		})
-
-		if err != nil {
-			log.Println("Unable to create the HTTP route", err)
-
-			return err
-		}
+		return err
 	}
 
-	updated := false
+	backend, updated, err := su.GetCreateOrUpdateBackend(route, service)
+	if err != nil {
+		return err
+	}
+
+	// Create the filter
+	routeName := GetServiceRouteName(service)
 	filter, err := GetFilterInRoute(route, routeName)
+	domainName := su.GetDomainNameFromService(service)
 	if err != nil {
 		filter = &vamprouter.Filter{
 			Name: routeName,
-			Condition: "hdr(Host) -i "+su.GetDomainNameFromService(service),
-			Destination: routeName,
+			Condition: "hdr(Host) -i "+domainName,
+			Destination: backend.Name,
 		}
 
 		route.Filters = append(route.Filters, *filter)
 		updated = true
 	}
 
-	// Create the associated service
+	if updated {
+		_, err = su.RouterClient.UpdateRoute(route)
+
+		return err
+	}
+
+	return nil
+}
+
+func (su *ServiceUpdater) GetCreateOrUpdateBackend(route *vamprouter.Route, service *api.Service) (*vamprouter.Service, bool, error)  {
+	updated := false
+	routeName := GetServiceRouteName(service)
+
+	// Create the backend service if it do not exists
 	routeService, err := GetServiceInRoute(route, routeName)
 	if err != nil {
 		route.Services = append(route.Services, vamprouter.Service{
@@ -108,8 +117,10 @@ func (su *ServiceUpdater) UpdateRouteIfNeeded(service *api.Service) error {
 
 		routeService = &route.Services[len(route.Services) - 1]
 		updated = true
+		err = nil
 	}
 
+	// Updates the backend if needed
 	serviceHost := service.Spec.ClusterIP
 	if len(routeService.Servers) != 1 || routeService.Servers[0].Host != serviceHost {
 		routeService.Servers = []vamprouter.Server{
@@ -121,20 +132,29 @@ func (su *ServiceUpdater) UpdateRouteIfNeeded(service *api.Service) error {
 		}
 
 		err = ReplaceServiceInRoute(route, routeName, routeService)
-		if err != nil {
-			return err
-		}
-
 		updated = true
 	}
 
-	if updated {
-		_, err = su.RouterClient.UpdateRoute(route)
+	return routeService, updated, err
+}
 
-		return err
+func (su *ServiceUpdater)GetOrCreateHttpRoute() (*vamprouter.Route, error) {
+	route, err := su.RouterClient.GetRoute("http")
+	if err != nil {
+		route, err = su.RouterClient.CreateRoute(&vamprouter.Route{
+			Name: "http",
+			Port: 80,
+			Protocol: vamprouter.ProtocolHttp,
+		})
+
+		if err != nil {
+			log.Println("Unable to create the HTTP route", err)
+
+			return nil, err
+		}
 	}
 
-	return nil
+	return route, err
 }
 
 func GetFilterInRoute(route *vamprouter.Route, filterName string) (*vamprouter.Filter, error) {

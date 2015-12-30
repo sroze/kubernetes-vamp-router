@@ -6,9 +6,9 @@ Feature:
   Scenario: kubernetesReverseProxy compatibility
     Given the k8s service "app" is in the namespace "default"
     And the k8s service "app" has the following annotations:
-      | name | value |
-      | foo  | bar   |
-    And the k8s service IP is "1.2.3.4"
-    When the k8s service "app" is created
+      | name                   | value                                              |
+      | kubernetesReverseproxy | {"hosts": [{"host": "example.com", "port": "80"}]} |
+    And the k8s service "app" IP is "1.2.3.4"
+    When the k8s service named "app" is created
     And the vamp service "example.com" should be created
     And the vamp service "example.com" should only contain the backend "1.2.3.4"

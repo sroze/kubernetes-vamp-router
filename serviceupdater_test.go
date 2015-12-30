@@ -247,4 +247,5 @@ func featureContext(s *godog.Suite) {
 	s.Step(`^the k8s service "([^"]*)" IP is "([^"]*)"$`, theKsServiceIPIs)
 	s.Step(`^the k8s service named "([^"]*)" is created$`, theKsServiceNamedisCreated)
 	s.Step(`^the k8s service named "([^"]*)" is updated$`, theKsServiceNamedisUpdated)
+	s.Step(`^the k8s service "([^"]*)" has the following annotations:$`, theKsServicehasTheFollowingAnnotations)
 }

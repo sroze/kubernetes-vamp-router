@@ -3,6 +3,7 @@ package k8svamprouter
 import (
 	"k8s.io/kubernetes/pkg/api"
 	"errors"
+	"github.com/cucumber/gherkin-go"
 )
 
 type InMemoryServiceRepository struct {
@@ -62,6 +63,27 @@ func theKsServiceisInTheNamespace(serviceName string, namespace string) error {
 func theKsServiceIPIs(serviceName string, IP string) error {
 	service := GetOrCreateService(repository, serviceName)
 	service.Spec.ClusterIP = IP
+
+	_, err := repository.Update(service)
+
+	return err
+}
+
+
+func theKsServicehasTheFollowingAnnotations(serviceName string, annotationsTable *gherkin.DataTable) error {
+	service := GetOrCreateService(repository, serviceName)
+	annotations := make(map[string]string)
+
+	for i, row := range annotationsTable.Rows {
+		if i == 0 {
+			// Skip the headers
+			continue
+		}
+
+		annotations[row.Cells[0].Value] = row.Cells[1].Value
+	}
+
+	service.ObjectMeta.Annotations = annotations
 
 	_, err := repository.Update(service)
 
