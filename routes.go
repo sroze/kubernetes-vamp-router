@@ -8,12 +8,14 @@ import (
 	"k8s.io/kubernetes/pkg/api"
 )
 
-func (su *ServiceUpdater) GetServiceRouteName(service *api.Service) string {
-	name := strings.Join([]string{
+func GetServiceRouteName(service *api.Service) string {
+	return GetDNSIdentifier(strings.Join([]string{
 		service.ObjectMeta.Name,
 		service.ObjectMeta.Namespace,
-	}, ".")
+	}, "."))
+}
 
+func GetDNSIdentifier(name string) string {
 	if len(name) > 63 {
 		nameHash := GetMD5Hash(name)[0:10]
 		name = name[0:52]+"-"+nameHash
@@ -22,11 +24,16 @@ func (su *ServiceUpdater) GetServiceRouteName(service *api.Service) string {
 	return name
 }
 
-func (su *ServiceUpdater) GetDomainNameFromService(service *api.Service) string {
-	return strings.Join([]string{
-		su.GetServiceRouteName(service),
+func (su *ServiceUpdater) GetDomainNamesFromService(service *api.Service) []string {
+	domainNames := GetDomainNamesFromServiceAnnotations(service)
+
+	// Add the default domain name
+	domainNames = append(domainNames, strings.Join([]string{
+		GetServiceRouteName(service),
 		su.Configuration.RootDns,
-	}, ".")
+	}, "."))
+
+	return domainNames
 }
 
 func GetMD5Hash(text string) string {
