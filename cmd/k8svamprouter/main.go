@@ -42,7 +42,7 @@ func main() {
 	}
 }
 
-func CreateClusterClient() *client.Interface {
+func CreateClusterClient() client.Interface {
 	clusterAddress := os.Getenv("CLUSTER_API_ADDRESS")
 	if clusterAddress == "" {
 		log.Fatalln("You need to precise the address of Kubernetes API with the `CLUSTER_API_ADDRESS` environment variable")
@@ -72,14 +72,16 @@ func CreateRouterClient() *vamprouter.Client {
 	}
 }
 
-func CreateServiceUpdater(client *client.Interface) *k8svamprouter.ServiceUpdater {
+func CreateServiceUpdater(client client.Interface) *k8svamprouter.ServiceUpdater {
 	rootDns := os.Getenv("ROOT_DNS_DOMAIN")
 	if rootDns == "" {
 		log.Fatalln("You need to precise your root DNS name with the `ROOT_DNS_DOMAIN` environment variable")
 	}
 
 	return &k8svamprouter.ServiceUpdater{
-		ClusterClient: client,
+		ServiceRepository: &k8svamprouter.KubernetesServiceRepository{
+			Client: client,
+		},
 		RouterClient: CreateRouterClient(),
 		Configuration: k8svamprouter.Configuration{
 			RootDns: rootDns,

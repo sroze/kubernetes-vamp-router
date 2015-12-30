@@ -6,9 +6,9 @@ import (
 )
 
 type KubernetesServiceRepository struct {
-    client client.Interface
+    Client client.Interface
 }
 
 func (repository *KubernetesServiceRepository) Update(service *api.Service) (*api.Service, error) {
-	return repository.client.Services(service.ObjectMeta.Namespace).Update(service)
+	return repository.Client.Services(service.ObjectMeta.Namespace).Update(service)
 }
