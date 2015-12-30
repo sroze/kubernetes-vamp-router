@@ -16,6 +16,13 @@ Feature:
 
   Scenario: Updates the backend address if the service changes
     Given a vamp route named "http" already exists
-    When a k8s service named "app" is created in the namespace "qwerty" with the IP "1.2.3.4"
-    And a k8s service named "app" is updated in the namespace "qwerty" with the IP "2.3.4.5"
+    And a k8s service named "app" is created in the namespace "qwerty" with the IP "1.2.3.4"
+    When a k8s service named "app" is updated in the namespace "qwerty" with the IP "2.3.4.5"
     Then the vamp service "app.qwerty" should only contain the backend "2.3.4.5"
+
+  Scenario: Should not update the service if nothing changed
+    Given a vamp route named "http" already exists
+    When a k8s service named "app" is created in the namespace "qwerty" with the IP "1.2.3.4"
+    Then the vamp route should be updated
+    When a k8s service named "app" is updated in the namespace "qwerty" with the IP "1.2.3.4"
+    Then the vamp route should not be updated
