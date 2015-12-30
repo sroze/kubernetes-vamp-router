@@ -11,6 +11,7 @@ install:
   - go get github.com/DATA-DOG/godog/cmd/godog
   - wget https://github.com/koofr/go-pin/releases/download/v1.10/go-pin.sh -O ./go-pin && chmod +x ./go-pin
   - cat versions | ./go-pin reset
+  - go get
 
 script:
   - go test
