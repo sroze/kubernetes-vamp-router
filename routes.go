@@ -24,11 +24,16 @@ func GetDNSIdentifier(name string) string {
 	return name
 }
 
-func (su *ServiceUpdater) GetDomainNameFromService(service *api.Service) string {
-	return strings.Join([]string{
+func (su *ServiceUpdater) GetDomainNamesFromService(service *api.Service) []string {
+	domainNames := GetDomainNamesFromServiceAnnotations(service)
+
+	// Add the default domain name
+	domainNames = append(domainNames, strings.Join([]string{
 		GetServiceRouteName(service),
 		su.Configuration.RootDns,
-	}, ".")
+	}, "."))
+
+	return domainNames
 }
 
 func GetMD5Hash(text string) string {

@@ -14,7 +14,7 @@ Feature:
   Scenario: VR Filter & Service created
     Given a vamp route named "http" already exists
     When the k8s service named "app" is created
-    Then the vamp filter named "app.qwerty" should be created
+    Then the vamp filter named "app.qwerty.example.com" should be created
     And the vamp service "app.qwerty" should be created
     And the vamp service "app.qwerty" should only contain the backend "1.2.3.4"
 

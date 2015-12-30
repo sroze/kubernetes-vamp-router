@@ -46,7 +46,7 @@ func (su *ServiceUpdater) UpdateServiceRouting(service *api.Service) error {
 		LoadBalancer: api.LoadBalancerStatus{
 			Ingress: []api.LoadBalancerIngress{
 				api.LoadBalancerIngress{
-					Hostname: su.GetDomainNameFromService(service),
+					Hostname: su.GetDomainNamesFromService(service)[0],
 				},
 			},
 		},
@@ -79,13 +79,20 @@ func (su *ServiceUpdater) UpdateRouteIfNeeded(service *api.Service) error {
 		return err
 	}
 
-	// Create the filter
-	routeName := GetServiceRouteName(service)
-	filter, err := GetFilterInRoute(route, routeName)
-	domainName := su.GetDomainNameFromService(service)
-	if err != nil {
+	// Create the filters
+	domainNames := su.GetDomainNamesFromService(service)
+
+	for _, domainName := range domainNames {
+		filterName := GetDNSIdentifier(domainName)
+		filter, err := GetFilterInRoute(route, filterName)
+
+		if err == nil {
+			// Filter already exists, just pass
+			continue
+		}
+
 		filter = &vamprouter.Filter{
-			Name: routeName,
+			Name: filterName,
 			Condition: "hdr(Host) -i "+domainName,
 			Destination: backend.Name,
 		}

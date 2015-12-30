@@ -10,5 +10,4 @@ Feature:
       | kubernetesReverseproxy | {"hosts": [{"host": "example.com", "port": "80"}]} |
     And the k8s service "app" IP is "1.2.3.4"
     When the k8s service named "app" is created
-    And the vamp service "example.com" should be created
-    And the vamp service "example.com" should only contain the backend "1.2.3.4"
+    And the vamp filter named "example.com" should be created
