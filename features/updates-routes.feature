@@ -9,6 +9,13 @@ Feature:
 
   Scenario: VR Filter & Service created
     Given a vamp route named "http" already exists
-    When a k8s service named "app" is created in the namespace "qwerty"
-    Then the vamp service "app.qwerty" should be created
-    And the vamp filter named "app.qwerty" should be created
+    When a k8s service named "app" is created in the namespace "qwerty" with the IP "1.2.3.4"
+    Then the vamp filter named "app.qwerty" should be created
+    And the vamp service "app.qwerty" should be created
+    And the vamp service "app.qwerty" should only contain the backend "1.2.3.4"
+
+  Scenario: Updates the backend address if the service changes
+    Given a vamp route named "http" already exists
+    When a k8s service named "app" is created in the namespace "qwerty" with the IP "1.2.3.4"
+    And a k8s service named "app" is updated in the namespace "qwerty" with the IP "2.3.4.5"
+    Then the vamp service "app.qwerty" should only contain the backend "2.3.4.5"

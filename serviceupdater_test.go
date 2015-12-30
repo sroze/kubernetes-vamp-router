@@ -5,6 +5,7 @@ import (
 	"k8s.io/kubernetes/pkg/api"
 	"github.com/sroze/kubernetes-vamp-router/vamprouter"
 	"errors"
+	"fmt"
 )
 
 type InMemoryServiceRepository struct {
@@ -96,6 +97,30 @@ func aKsServiceNamedIsCreatedInTheNamespace(serviceName string, namespaceName st
 	})
 }
 
+func aKsServiceNamedIsCreatedInTheNamespaceWithTheIP(serviceName string, namespaceName string, IP string) error {
+	return updater.CreateServiceRoute(&api.Service{
+		ObjectMeta: api.ObjectMeta{
+			Name: serviceName,
+			Namespace: namespaceName,
+		},
+		Spec: api.ServiceSpec{
+			ClusterIP: IP,
+		},
+	})
+}
+
+func aKsServiceNamedIsUpdatedInTheNamespaceWithTheIP(serviceName string, namespaceName string, IP string) error {
+	return updater.UpdateServiceRouting(&api.Service{
+		ObjectMeta: api.ObjectMeta{
+			Name: serviceName,
+			Namespace: namespaceName,
+		},
+		Spec: api.ServiceSpec{
+			ClusterIP: IP,
+		},
+	})
+}
+
 /**
  * THEN
  */
@@ -107,11 +132,7 @@ func theVampServiceShouldBeCreated(serviceName string) error {
 	}
 
 	_, err = GetCreatedServiceInRoute(route, serviceName)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func theVampRouteShouldBeCreated(routeName string) error {
@@ -127,8 +148,26 @@ func theVampFilterNamedShouldBeCreated(filterName string) error {
 	}
 
 	_, err = GetCreatedFilterInRoute(route, filterName)
+	return err
+}
+
+func theVampServiceShouldOnlyContainTheBackend(serviceName string, IP string) error {
+	route, err := updater.RouterClient.GetRoute("http")
 	if err != nil {
 		return err
+	}
+
+	service, err := GetCreatedServiceInRoute(route, serviceName)
+	if err != nil {
+		return err
+	}
+
+	if 1 != len(service.Servers) {
+		return errors.New(fmt.Sprintf("Expected to have 1 server in the service, found %d", len(service.Servers)))
+	}
+
+	if IP != service.Servers[0].Host {
+		return errors.New(fmt.Sprintf("Expected to find a given IP, but found %s", service.Servers[0].Host))
 	}
 
 	return nil
@@ -148,8 +187,11 @@ func featureContext(s *godog.Suite) {
 	})
 
 	s.Step(`^a k8s service named "([^"]*)" is created in the namespace "([^"]*)"$`, aKsServiceNamedIsCreatedInTheNamespace)
+	s.Step(`^a k8s service named "([^"]*)" is created in the namespace "([^"]*)" with the IP "([^"]*)"$`, aKsServiceNamedIsCreatedInTheNamespaceWithTheIP)
 	s.Step(`^the vamp service "([^"]*)" should be created$`, theVampServiceShouldBeCreated)
 	s.Step(`^the vamp route "([^"]*)" should be created$`, theVampRouteShouldBeCreated)
 	s.Step(`^a vamp route named "([^"]*)" already exists$`, aVampRouteNamedAlreadyExists)
 	s.Step(`^the vamp filter named "([^"]*)" should be created$`, theVampFilterNamedShouldBeCreated)
+	s.Step(`^the vamp service "([^"]*)" should only contain the backend "([^"]*)"$`, theVampServiceShouldOnlyContainTheBackend)
+	s.Step(`^a k8s service named "([^"]*)" is updated in the namespace "([^"]*)" with the IP "([^"]*)"$`, aKsServiceNamedIsUpdatedInTheNamespaceWithTheIP)
 }
