@@ -8,13 +8,6 @@ import (
 	"fmt"
 )
 
-type InMemoryServiceRepository struct {
-}
-
-func(repository *InMemoryServiceRepository) Update(service *api.Service) (*api.Service, error) {
-	return service, nil
-}
-
 type InMemoryVampRouterClient struct  {
 	Routes map[string]*vamprouter.Route
 	UpdatedRoutes []*vamprouter.Route
@@ -103,6 +96,25 @@ func aVampRouteNamedAlreadyExists(routeName string) error {
 /**
  * WHEN
  */
+
+func theKsServiceNamedisCreated(serviceName string) error {
+	service, err := repository.Get(serviceName)
+	if err != nil {
+		return err
+	}
+
+	return updater.CreateServiceRoute(service)
+}
+
+func theKsServiceNamedisUpdated(serviceName string) error {
+	service, err := repository.Get(serviceName)
+	if err != nil {
+		return err
+	}
+
+	return updater.UpdateServiceRouting(service)
+}
+
 func aKsServiceNamedIsCreatedInTheNamespace(serviceName string, namespaceName string) error {
 	return updater.CreateServiceRoute(&api.Service{
 		ObjectMeta: api.ObjectMeta{
@@ -213,7 +225,7 @@ func theVampServiceShouldOnlyContainTheBackend(serviceName string, IP string) er
 func featureContext(s *godog.Suite) {
 	s.BeforeScenario(func(interface{}) {
 		updater = &ServiceUpdater{
-			ServiceRepository: &InMemoryServiceRepository{},
+			ServiceRepository: NewInMemoryServiceRepository(),
 			RouterClient: NewInMemoryVampRouterClient(),
 			Configuration: Configuration{
 				RootDns: "example.com",
@@ -231,4 +243,8 @@ func featureContext(s *godog.Suite) {
 	s.Step(`^a k8s service named "([^"]*)" is updated in the namespace "([^"]*)" with the IP "([^"]*)"$`, aKsServiceNamedIsUpdatedInTheNamespaceWithTheIP)
 	s.Step(`^the vamp route should not be updated$`, theVampRouteShouldNotBeUpdated)
 	s.Step(`^the vamp route should be updated$`, theVampRouteShouldBeUpdated)
+	s.Step(`^the k8s service "([^"]*)" is in the namespace "([^"]*)"$`, theKsServiceisInTheNamespace)
+	s.Step(`^the k8s service "([^"]*)" IP is "([^"]*)"$`, theKsServiceIPIs)
+	s.Step(`^the k8s service named "([^"]*)" is created$`, theKsServiceNamedisCreated)
+	s.Step(`^the k8s service named "([^"]*)" is updated$`, theKsServiceNamedisUpdated)
 }

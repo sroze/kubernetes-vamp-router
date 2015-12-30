@@ -3,21 +3,26 @@ Feature:
   As a developer
   I want this application to updates the Vamp routes
 
+  Background:
+    Given the k8s service "app" is in the namespace "qwerty"
+    And the k8s service "app" IP is "1.2.3.4"
+
   Scenario: Route a created service
-    When a k8s service named "app" is created in the namespace "qwerty"
+    When the k8s service named "app" is created
     Then the vamp route "http" should be created
 
   Scenario: VR Filter & Service created
     Given a vamp route named "http" already exists
-    When a k8s service named "app" is created in the namespace "qwerty" with the IP "1.2.3.4"
+    When the k8s service named "app" is created
     Then the vamp filter named "app.qwerty" should be created
     And the vamp service "app.qwerty" should be created
     And the vamp service "app.qwerty" should only contain the backend "1.2.3.4"
 
   Scenario: Updates the backend address if the service changes
     Given a vamp route named "http" already exists
-    And a k8s service named "app" is created in the namespace "qwerty" with the IP "1.2.3.4"
-    When a k8s service named "app" is updated in the namespace "qwerty" with the IP "2.3.4.5"
+    When the k8s service named "app" is created
+    And the k8s service "app" IP is "2.3.4.5"
+    And the k8s service named "app" is updated
     Then the vamp service "app.qwerty" should only contain the backend "2.3.4.5"
 
   Scenario: Should not update the service if nothing changed
