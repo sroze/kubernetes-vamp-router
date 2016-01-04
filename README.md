@@ -7,6 +7,14 @@ an address automatically added in the status of the service.
 This bridge for Vamp Router will automatically creates a new route via the [Vamp Router](https://github.com/magneticio/vamp-router)
 API when a service is created or updated (if needed). As well, when the service is removed, then the route is removed.
 
+![Overview of kubernetes-vamp-router in an architecture](docs/architecture.png)
+
+*Features:*
+
+- Automatically creates routes on Vamp Router when a `LoadBalancer` service is created
+- Updates the service's status to declare the created route
+- Read the annotations to create custom hosts
+
 ## Getting started
 
 First of all, start your Vamp router on your front-end server:
@@ -19,7 +27,7 @@ docker run -d \
 ```
 
 Then, you just have to start the container `sroze/kubernetes-vamp-router` with the right environment variables based
-on your configuration.
+on your configuration. [Be careful about where you run these containers, they need to have access to the running containers](#where-to-run-these-containers).
 
 ```
 docker run -d \
@@ -46,7 +54,11 @@ variables that the container is reading:
 
 ## Where to run these containers?
 
-You have to run them on a machine which is in the cluster network and have kube-proxy running. The easiest way is to
-run them on a node of your cluster but running them outside just requires you to configure the networking and install
-kube-proxy.
+You have to run them on a machine which that:
+- Have kube-proxy running (to be able to connect to pods using services' IPs)
+- Is in the cluster network (to be able to actually route traffic to running containers)
+
+The easiest way is to run them on a public node of your cluster but running them outside just requires you to configure the networking and install kube-proxy.
+
+
 
