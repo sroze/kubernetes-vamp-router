@@ -9,13 +9,15 @@ API when a service is created or updated (if needed). As well, when the service 
 
 ![Overview of kubernetes-vamp-router in an architecture](docs/architecture.png)
 
-*Features:*
+**Features:**
 
 - Automatically creates routes on Vamp Router when a `LoadBalancer` service is created
 - Updates the service's status to declare the created route
 - Read the annotations to create custom hosts
 
-## Getting started
+## Installation
+
+### Starting containers
 
 First of all, start your Vamp router on your front-end server:
 ```
@@ -40,7 +42,7 @@ docker run -d \
     sroze/kubernetes-vamp-router
 ```
 
-## Configuration
+### Configuration
 
 The configuration can be done by passing some environment variables. Here is the list and the meaning of all environment
 variables that the container is reading:
@@ -52,7 +54,7 @@ variables that the container is reading:
 - `INSECURE_CLUSTER`: If the value is `true`, then the SSL certification won't be checked. This should be used for
   development purposes only!
 
-## Where to run these containers?
+### Where to run these containers?
 
 You have to run them on a machine which that:
 - Have kube-proxy running (to be able to connect to pods using services' IPs)
@@ -60,5 +62,26 @@ You have to run them on a machine which that:
 
 The easiest way is to run them on a public node of your cluster but running them outside just requires you to configure the networking and install kube-proxy.
 
+## Using custom domain names
 
+Instead of relying of the automated domain name generation, you can also define the domain names you want to use in the service annotations. The configuration is currently compatible with the [`kubernetes-reverseproxy` configuration](https://github.com/darkgaro/kubernetes-reverseproxy).
 
+The annotation name is `kubernetesReverseproxy` and the value should be a JSON encoded string of host names you want to use. For instance, in order to make the Vamp Router routing requests from "example.com" and "sroze.io" to your service, you'll have to create it like that:
+
+```yml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubernetesReverseproxy: '{"hosts":[{"host":"example.com"},{"host":"sroze.io"}]}'
+  name: web
+spec:
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    component-identifier: web
+  type: LoadBalancer
+```
