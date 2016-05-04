@@ -19,7 +19,7 @@ func ShouldUpdateServiceRoute(service *api.Service) bool {
 	return true
 }
 
-func ServiceExposesPort(service *api.Service, port int) bool {
+func ServiceExposesPort(service *api.Service, port int32) bool {
 	for _, exposedPort := range service.Spec.Ports {
 		if exposedPort.Port == port {
 			return true

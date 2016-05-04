@@ -12,13 +12,18 @@ import (
 
 	"github.com/sroze/kubernetes-vamp-router/vamprouter"
 	k8svamprouter "github.com/sroze/kubernetes-vamp-router"
+	"k8s.io/kubernetes/pkg/client/restclient"
 )
 
 func main() {
 	client := CreateClusterClient()
 	serviceUpdater := CreateServiceUpdater(client)
 
-	w, err := client.Services(api.NamespaceAll).Watch(labels.Everything(), fields.Everything(), api.ListOptions{})
+	w, err := client.Services(api.NamespaceAll).Watch(api.ListOptions{
+		LabelSelector: labels.Everything(),
+		FieldSelector: fields.Everything(),
+	})
+
 	if err != nil {
 		log.Fatalln("Unable to watch services:", err)
 	}
@@ -48,7 +53,7 @@ func CreateClusterClient() client.Interface {
 		log.Fatalln("You need to precise the address of Kubernetes API with the `CLUSTER_API_ADDRESS` environment variable")
 	}
 
-	config := client.Config{
+	config := restclient.Config{
 		Host: clusterAddress,
 		Insecure: os.Getenv("INSECURE_CLUSTER") == "true",
 	}
