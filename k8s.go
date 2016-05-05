@@ -11,7 +11,7 @@ type KubernetesServiceRepository struct {
 }
 
 func (repository *KubernetesServiceRepository) Update(service *api.Service) (*api.Service, error) {
-	return repository.Client.Services(service.ObjectMeta.Namespace).Update(service)
+	return repository.Client.Services(service.ObjectMeta.Namespace).UpdateStatus(service)
 }
 
 type KubernetesReverseProxyHostConfiguration struct {

@@ -85,3 +85,18 @@ spec:
     component-identifier: web
   type: LoadBalancer
 ```
+
+
+## Development
+
+```
+go get
+```
+
+```
+CLUSTER_API_ADDRESS=https://master.api.address \
+    INSECURE_CLUSTER=true \
+    ROOT_DNS_DOMAIN=your.root.dns.com \
+    ROUTER_API_ADDRESS=http://your.router.addrss:10001 \
+    go run cmd/k8svamprouter/main.go
+```
