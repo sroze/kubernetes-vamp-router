@@ -4,22 +4,23 @@ import (
 	"log"
 	"os"
 
-	"k8s.io/kubernetes/pkg/api"
-	client "k8s.io/kubernetes/pkg/client/unversioned"
-	"k8s.io/kubernetes/pkg/labels"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/watch"
+	api "k8s.io/client-go/pkg/api/v1"
+	client "k8s.io/client-go/kubernetes"
+	rest "k8s.io/client-go/rest"
+
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/watch"
 
 	"github.com/sroze/kubernetes-vamp-router/vamprouter"
 	k8svamprouter "github.com/sroze/kubernetes-vamp-router"
-	"k8s.io/kubernetes/pkg/client/restclient"
 )
 
 func main() {
 	client := CreateClusterClient()
 	serviceUpdater := CreateServiceUpdater(client)
 
-	w, err := client.Services(api.NamespaceAll).Watch(api.ListOptions{
+	w, err := client.CoreV1().Services(api.NamespaceAll).Watch(api.ListOptions{
 		LabelSelector: labels.Everything(),
 		FieldSelector: fields.Everything(),
 	})
@@ -53,12 +54,12 @@ func CreateClusterClient() client.Interface {
 		log.Fatalln("You need to precise the address of Kubernetes API with the `CLUSTER_API_ADDRESS` environment variable")
 	}
 
-	config := restclient.Config{
+	config := rest.Config{
 		Host: clusterAddress,
 		Insecure: os.Getenv("INSECURE_CLUSTER") == "true",
 	}
 
-	c, err := client.New(&config)
+	c, err := client.NewForConfig(&config)
 	if err != nil {
 		log.Fatalln("Can't connect to Kubernetes API:", err)
 	}

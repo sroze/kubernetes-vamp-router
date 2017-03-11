@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/DATA-DOG/godog"
 	"github.com/sroze/kubernetes-vamp-router/vamprouter"
-	"k8s.io/kubernetes/pkg/api"
+	api "k8s.io/client-go/pkg/api/v1"
 )
 
 type InMemoryVampRouterClient struct {

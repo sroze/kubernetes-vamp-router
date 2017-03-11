@@ -1,0 +1,11 @@
+package: github.com/sroze/kubernetes-vamp-router
+import:
+- package: k8s.io/client-go
+  version: v2.0.0
+  subpackages:
+  - kubernetes
+testImport:
+- package: github.com/DATA-DOG/godog
+  version: ^0.6.3
+  subpackages:
+  - gherkin

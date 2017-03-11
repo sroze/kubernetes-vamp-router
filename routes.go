@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"k8s.io/kubernetes/pkg/api"
+	api "k8s.io/client-go/pkg/api/v1"
 )
 
 func GetServiceRouteName(service *api.Service) string {

@@ -2,8 +2,8 @@ package k8svamprouter
 
 import (
 	"encoding/json"
-	"k8s.io/kubernetes/pkg/api"
-	client "k8s.io/kubernetes/pkg/client/unversioned"
+	api "k8s.io/client-go/pkg/api/v1"
+	client "k8s.io/client-go/kubernetes"
 )
 
 type KubernetesServiceRepository struct {
@@ -11,7 +11,7 @@ type KubernetesServiceRepository struct {
 }
 
 func (repository *KubernetesServiceRepository) Update(service *api.Service) (*api.Service, error) {
-	return repository.Client.Services(service.ObjectMeta.Namespace).UpdateStatus(service)
+	return repository.Client.CoreV1().Services(service.ObjectMeta.Namespace).UpdateStatus(service)
 }
 
 type KubernetesReverseProxyHostConfiguration struct {

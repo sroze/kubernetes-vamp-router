@@ -3,7 +3,7 @@ package k8svamprouter
 import (
 	"errors"
 	"github.com/DATA-DOG/godog/gherkin"
-	"k8s.io/kubernetes/pkg/api"
+	api "k8s.io/client-go/pkg/api/v1"
 )
 
 type InMemoryServiceRepository struct {
