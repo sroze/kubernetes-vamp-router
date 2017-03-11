@@ -1,0 +1,11 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    component-identifier: vamp-router
+  name: vamp-router 
+spec:
+  backend:
+    serviceName: vamp-router 
+    servicePort: 80
+
