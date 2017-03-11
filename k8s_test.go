@@ -1,16 +1,16 @@
 package k8svamprouter
 
 import (
-	"k8s.io/kubernetes/pkg/api"
 	"errors"
-	"github.com/cucumber/gherkin-go"
+	"github.com/DATA-DOG/godog/gherkin"
+	"k8s.io/kubernetes/pkg/api"
 )
 
 type InMemoryServiceRepository struct {
 	Services map[string]*api.Service
 }
 
-func(repository *InMemoryServiceRepository) Get(name string) (*api.Service, error) {
+func (repository *InMemoryServiceRepository) Get(name string) (*api.Service, error) {
 	service, found := repository.Services[name]
 	if found {
 		return service, nil
@@ -19,7 +19,7 @@ func(repository *InMemoryServiceRepository) Get(name string) (*api.Service, erro
 	return nil, errors.New("Service do not exists")
 }
 
-func(repository *InMemoryServiceRepository) Update(service *api.Service) (*api.Service, error) {
+func (repository *InMemoryServiceRepository) Update(service *api.Service) (*api.Service, error) {
 	repository.Services[service.ObjectMeta.Name] = service
 
 	return service, nil
@@ -68,7 +68,6 @@ func theKsServiceIPIs(serviceName string, IP string) error {
 
 	return err
 }
-
 
 func theKsServicehasTheFollowingAnnotations(serviceName string, annotationsTable *gherkin.DataTable) error {
 	service := GetOrCreateService(repository, serviceName)

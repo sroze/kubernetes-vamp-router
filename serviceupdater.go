@@ -1,11 +1,11 @@
 package k8svamprouter
 
 import (
-	"k8s.io/kubernetes/pkg/api"
-	"log"
-	"github.com/sroze/kubernetes-vamp-router/vamprouter"
 	"errors"
 	"fmt"
+	"github.com/sroze/kubernetes-vamp-router/vamprouter"
+	"k8s.io/kubernetes/pkg/api"
+	"log"
 )
 
 type ServiceRepository interface {
@@ -24,7 +24,7 @@ type ServiceUpdater struct {
 	RouterClient vamprouter.Interface
 
 	// Updater configuration
-    Configuration Configuration
+	Configuration Configuration
 }
 
 func (su *ServiceUpdater) UpdateServiceRouting(service *api.Service) error {
@@ -92,8 +92,8 @@ func (su *ServiceUpdater) UpdateRouteIfNeeded(service *api.Service) error {
 		}
 
 		filter = &vamprouter.Filter{
-			Name: filterName,
-			Condition: "hdr(Host) -i "+domainName,
+			Name:        filterName,
+			Condition:   "hdr(Host) -i " + domainName,
 			Destination: backend.Name,
 		}
 
@@ -110,7 +110,7 @@ func (su *ServiceUpdater) UpdateRouteIfNeeded(service *api.Service) error {
 	return nil
 }
 
-func (su *ServiceUpdater) GetCreateOrUpdateBackend(route *vamprouter.Route, service *api.Service) (*vamprouter.Service, bool, error)  {
+func (su *ServiceUpdater) GetCreateOrUpdateBackend(route *vamprouter.Route, service *api.Service) (*vamprouter.Service, bool, error) {
 	updated := false
 	routeName := GetServiceRouteName(service)
 
@@ -118,11 +118,11 @@ func (su *ServiceUpdater) GetCreateOrUpdateBackend(route *vamprouter.Route, serv
 	routeService, err := GetServiceInRoute(route, routeName)
 	if err != nil {
 		route.Services = append(route.Services, vamprouter.Service{
-			Name: routeName,
+			Name:   routeName,
 			Weight: 0,
 		})
 
-		routeService = &route.Services[len(route.Services) - 1]
+		routeService = &route.Services[len(route.Services)-1]
 		updated = true
 		err = nil
 	}
@@ -145,12 +145,12 @@ func (su *ServiceUpdater) GetCreateOrUpdateBackend(route *vamprouter.Route, serv
 	return routeService, updated, err
 }
 
-func (su *ServiceUpdater)GetOrCreateHttpRoute() (*vamprouter.Route, error) {
+func (su *ServiceUpdater) GetOrCreateHttpRoute() (*vamprouter.Route, error) {
 	route, err := su.RouterClient.GetRoute("http")
 	if err != nil {
 		route, err = su.RouterClient.CreateRoute(&vamprouter.Route{
-			Name: "http",
-			Port: 80,
+			Name:     "http",
+			Port:     80,
 			Protocol: vamprouter.ProtocolHttp,
 		})
 

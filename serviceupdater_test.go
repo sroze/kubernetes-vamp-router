@@ -1,15 +1,15 @@
 package k8svamprouter
 
 import (
-	"github.com/DATA-DOG/godog"
-	"k8s.io/kubernetes/pkg/api"
-	"github.com/sroze/kubernetes-vamp-router/vamprouter"
 	"errors"
 	"fmt"
+	"github.com/DATA-DOG/godog"
+	"github.com/sroze/kubernetes-vamp-router/vamprouter"
+	"k8s.io/kubernetes/pkg/api"
 )
 
-type InMemoryVampRouterClient struct  {
-	Routes map[string]*vamprouter.Route
+type InMemoryVampRouterClient struct {
+	Routes        map[string]*vamprouter.Route
 	UpdatedRoutes []*vamprouter.Route
 }
 
@@ -23,11 +23,11 @@ func NewInMemoryVampRouterClient() *InMemoryVampRouterClient {
 	return client
 }
 
-func(client *InMemoryVampRouterClient) Clear() {
+func (client *InMemoryVampRouterClient) Clear() {
 	client.UpdatedRoutes = []*vamprouter.Route{}
 }
 
-func(client *InMemoryVampRouterClient) GetRoute(name string) (*vamprouter.Route, error) {
+func (client *InMemoryVampRouterClient) GetRoute(name string) (*vamprouter.Route, error) {
 	route, found := client.Routes[name]
 	if found {
 		return route, nil
@@ -36,18 +36,18 @@ func(client *InMemoryVampRouterClient) GetRoute(name string) (*vamprouter.Route,
 	return nil, errors.New("Route do not exists")
 }
 
-func(client *InMemoryVampRouterClient) UpdateRoute(route *vamprouter.Route) (*vamprouter.Route, error) {
+func (client *InMemoryVampRouterClient) UpdateRoute(route *vamprouter.Route) (*vamprouter.Route, error) {
 	_, found := client.Routes[route.Name]
 	if !found {
 		return nil, errors.New("Route not found")
 	}
 
-	client.Routes[route.Name] = route;
+	client.Routes[route.Name] = route
 
 	return route, nil
 }
 
-func(client *InMemoryVampRouterClient) CreateRoute(route *vamprouter.Route) (*vamprouter.Route, error) {
+func (client *InMemoryVampRouterClient) CreateRoute(route *vamprouter.Route) (*vamprouter.Route, error) {
 	_, found := client.Routes[route.Name]
 	if found {
 		return nil, errors.New("Route already exists")
@@ -85,8 +85,8 @@ func GetCreatedFilterInRoute(route *vamprouter.Route, filterName string) (vampro
  */
 func aVampRouteNamedAlreadyExists(routeName string) error {
 	_, err := updater.RouterClient.CreateRoute(&vamprouter.Route{
-		Name: "http",
-		Port: 80,
+		Name:     "http",
+		Port:     80,
 		Protocol: vamprouter.ProtocolHttp,
 	})
 
@@ -118,7 +118,7 @@ func theKsServiceNamedisUpdated(serviceName string) error {
 func aKsServiceNamedIsCreatedInTheNamespace(serviceName string, namespaceName string) error {
 	return updater.CreateServiceRoute(&api.Service{
 		ObjectMeta: api.ObjectMeta{
-			Name: serviceName,
+			Name:      serviceName,
 			Namespace: namespaceName,
 		},
 	})
@@ -127,7 +127,7 @@ func aKsServiceNamedIsCreatedInTheNamespace(serviceName string, namespaceName st
 func aKsServiceNamedIsCreatedInTheNamespaceWithTheIP(serviceName string, namespaceName string, IP string) error {
 	return updater.CreateServiceRoute(&api.Service{
 		ObjectMeta: api.ObjectMeta{
-			Name: serviceName,
+			Name:      serviceName,
 			Namespace: namespaceName,
 		},
 		Spec: api.ServiceSpec{
@@ -139,7 +139,7 @@ func aKsServiceNamedIsCreatedInTheNamespaceWithTheIP(serviceName string, namespa
 func aKsServiceNamedIsUpdatedInTheNamespaceWithTheIP(serviceName string, namespaceName string, IP string) error {
 	return updater.UpdateServiceRouting(&api.Service{
 		ObjectMeta: api.ObjectMeta{
-			Name: serviceName,
+			Name:      serviceName,
 			Namespace: namespaceName,
 		},
 		Spec: api.ServiceSpec{
@@ -222,11 +222,11 @@ func theVampServiceShouldOnlyContainTheBackend(serviceName string, IP string) er
 	return nil
 }
 
-func featureContext(s *godog.Suite) {
+func FeatureContext(s *godog.Suite) {
 	s.BeforeScenario(func(interface{}) {
 		updater = &ServiceUpdater{
 			ServiceRepository: NewInMemoryServiceRepository(),
-			RouterClient: NewInMemoryVampRouterClient(),
+			RouterClient:      NewInMemoryVampRouterClient(),
 			Configuration: Configuration{
 				RootDns: "example.com",
 			},

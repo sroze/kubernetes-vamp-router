@@ -1,13 +1,13 @@
 package k8svamprouter
 
 import (
-	client "k8s.io/kubernetes/pkg/client/unversioned"
-	"k8s.io/kubernetes/pkg/api"
 	"encoding/json"
+	"k8s.io/kubernetes/pkg/api"
+	client "k8s.io/kubernetes/pkg/client/unversioned"
 )
 
 type KubernetesServiceRepository struct {
-    Client client.Interface
+	Client client.Interface
 }
 
 func (repository *KubernetesServiceRepository) Update(service *api.Service) (*api.Service, error) {

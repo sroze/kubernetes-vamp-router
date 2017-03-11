@@ -1,4 +1,4 @@
-git a7c71e317124cbae60fd68cbd63130e792b0af92 github.com/DATA-DOG/godog https://github.com/DATA-DOG/godog
+git v0.6.3 github.com/DATA-DOG/godog https://github.com/DATA-DOG/godog
 git 3ac7bf7a47d159a033b107610db8a1b6575507a4 github.com/beorn7/perks https://github.com/beorn7/perks
 git v3.1.0 github.com/blang/semver https://github.com/blang/semver
 git 99c3df83b51532e3615f851d8c2dbb638f5313bf github.com/cloudfoundry-incubator/candiedyaml https://github.com/cloudfoundry-incubator/candiedyaml
@@ -13,6 +13,7 @@ git 23def4e6c14b4da8ac2ed8007337bc5eb5007998 github.com/golang/glog https://gith
 git 7cc19b78d562895b13596ddce7aafb59dd789318 github.com/golang/protobuf https://github.com/golang/protobuf
 git d08cd24ea27dda9bc8c73c07495b46e3b49f15b2 github.com/google/cadvisor https://github.com/google/cadvisor
 git fd52762d25a41827db7ef64c43756fd4b9f7e382 github.com/google/gofuzz https://github.com/google/gofuzz
+git v0.0.3 github.com/gravitational/satellite https://github.com/gravitational/satellite
 git 77ed1c8a01217656d2080ad51981f6e99adaa177 github.com/juju/ratelimit https://github.com/juju/ratelimit
 git 93e3df8e55d6548574645e8a31004e875a045bf8 github.com/kubernetes/kubernetes https://github.com/kubernetes/kubernetes
 git c12348ce28de40eed0136aa2b644d0ee0650e56c github.com/matttproud/golang_protobuf_extensions https://github.com/matttproud/golang_protobuf_extensions
@@ -25,7 +26,7 @@ git abf152e5f3e97f2fafac028d2cc06c1feb87ffa5 github.com/prometheus/procfs https:
 git a422bbe96644373c5753384a59d678f7d261ff10 github.com/shiena/ansicolor https://github.com/shiena/ansicolor
 git cb88ea77998c3f024757528e3305022ab50b43be github.com/spf13/pflag https://github.com/spf13/pflag
 git bb030300154db8515a5f8348abc838a797166842 github.com/sroze/kubernetes-load-balancer-proxifier git@github.com:sroze/kubernetes-load-balancer-proxifier.git
-git v1.1 github.com/sroze/kubernetes-vamp-router git@github.com:sroze/kubernetes-vamp-router.git
+git da8d7f9c73c152db26eeabf178eafa9f1fe60cb4 github.com/sroze/kubernetes-vamp-router git@github.com:sroze/kubernetes-vamp-router.git
 git 1a9d0bb9f541897e62256577b352fdbc1fb4fd94 github.com/stretchr/objx https://github.com/stretchr/objx
 git 6cb3b85ef5a0efef77caef88363ec4d4b5c0976d github.com/stretchr/testify https://github.com/stretchr/testify
 git v63 github.com/tools/godep https://github.com/tools/godep
@@ -34,6 +35,7 @@ git 019870fc9d457ee8abd13a2e93e3f2a3b55b7119 golang.org/x/crypto https://go.goog
 git 35ec611a141ee705590b9eb64d673f9e6dfeb1ac golang.org/x/net https://go.googlesource.com/net
 git 8434495902bd0900797016affe4ca35c55babb3f golang.org/x/oauth2 https://go.googlesource.com/oauth2
 git 200292f09e3aaa34878d801ab71fe823b1f7d36a google.golang.org/cloud https://code.googlesource.com/gocloud
+git v3.2.0 gopkg.in/cucumber/gherkin-go.v3 https://gopkg.in/cucumber/gherkin-go.v3
 git a83829b6f1293c91addabc89d0571c246397bbf4 gopkg.in/yaml.v2 https://gopkg.in/yaml.v2
 git 93e3df8e55d6548574645e8a31004e875a045bf8 k8s.io/kubernetes https://github.com/kubernetes/kubernetes
 git 42ca6cd68aa922bc3f32f1e056e61b65945d9ad7 speter.net/go/exp/math/dec/inf https://code.google.com/p/go-decimal-inf.exp

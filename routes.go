@@ -1,9 +1,9 @@
 package k8svamprouter
 
 import (
-	"strings"
 	"crypto/md5"
 	"encoding/hex"
+	"strings"
 
 	"k8s.io/kubernetes/pkg/api"
 )
@@ -18,7 +18,7 @@ func GetServiceRouteName(service *api.Service) string {
 func GetDNSIdentifier(name string) string {
 	if len(name) > 63 {
 		nameHash := GetMD5Hash(name)[0:10]
-		name = name[0:52]+"-"+nameHash
+		name = name[0:52] + "-" + nameHash
 	}
 
 	return name
