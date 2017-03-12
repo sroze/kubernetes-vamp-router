@@ -6,6 +6,7 @@ import (
 	"github.com/sroze/kubernetes-vamp-router/vamprouter"
 	api "k8s.io/client-go/pkg/api/v1"
 	"log"
+	"strings"
 )
 
 type ServiceRepository interface {
@@ -27,8 +28,14 @@ type ServiceUpdater struct {
 	Configuration Configuration
 }
 
+type ObjectRoutingResolver interface {
+	GetDomainNames(service *api.Service) []string
+	GetRouteName(service *api.Service) string
+	GetBackendAddress(service *api.Service) string
+}
+
 func (su *ServiceUpdater) UpdateServiceRouting(service *api.Service) error {
-	err := su.UpdateRouteIfNeeded(service)
+	err := su.UpdateRouteIfNeeded(su, service)
 	if err != nil {
 		log.Println("Unable to update service route", err)
 
@@ -46,7 +53,7 @@ func (su *ServiceUpdater) UpdateServiceRouting(service *api.Service) error {
 		LoadBalancer: api.LoadBalancerStatus{
 			Ingress: []api.LoadBalancerIngress{
 				api.LoadBalancerIngress{
-					Hostname: su.GetDomainNamesFromService(service)[0],
+					Hostname: su.GetDomainNames(service)[0],
 				},
 			},
 		},
@@ -68,19 +75,48 @@ func (su *ServiceUpdater) RemoveServiceRouting(service *api.Service) {
 	log.Println("Should remove service routing")
 }
 
-func (su *ServiceUpdater) UpdateRouteIfNeeded(service *api.Service) error {
+func (su *ServiceUpdater) CreateServiceRoute(service *api.Service) error {
+	return su.UpdateServiceRouting(service)
+}
+
+func (su *ServiceUpdater) GetDomainNames(service *api.Service) []string {
+	domainNames := GetDomainNamesFromServiceAnnotations(service)
+
+	// Add the default domain name
+	domainNames = append(domainNames, strings.Join([]string{
+		GetServiceRouteName(service),
+		su.Configuration.RootDns,
+	}, "."))
+
+	return domainNames
+}
+
+func (su *ServiceUpdater) GetRouteName(service *api.Service) string {
+	return GetServiceRouteName(service)
+}
+
+func (su *ServiceUpdater) GetBackendAddress(service *api.Service) string {
+	return service.Spec.ClusterIP
+}
+
+func (su *ServiceUpdater) UpdateRouteIfNeeded(objectRoutingResolver ObjectRoutingResolver, service *api.Service) error {
 	route, err := su.GetOrCreateHttpRoute()
 	if err != nil {
 		return err
 	}
 
-	backend, updated, err := su.GetCreateOrUpdateBackend(route, service)
+	backend, updated, err := su.GetCreateOrUpdateBackend(
+		route,
+		objectRoutingResolver.GetRouteName(service),
+		objectRoutingResolver.GetBackendAddress(service),
+	)
+
 	if err != nil {
 		return err
 	}
 
 	// Create the filters
-	domainNames := su.GetDomainNamesFromService(service)
+	domainNames := objectRoutingResolver.GetDomainNames(service)
 
 	for _, domainName := range domainNames {
 		filterName := GetDNSIdentifier(domainName)
@@ -110,9 +146,8 @@ func (su *ServiceUpdater) UpdateRouteIfNeeded(service *api.Service) error {
 	return nil
 }
 
-func (su *ServiceUpdater) GetCreateOrUpdateBackend(route *vamprouter.Route, service *api.Service) (*vamprouter.Service, bool, error) {
+func (su *ServiceUpdater) GetCreateOrUpdateBackend(route *vamprouter.Route, routeName string, backendAddress string) (*vamprouter.Service, bool, error) {
 	updated := false
-	routeName := GetServiceRouteName(service)
 
 	// Create the backend service if it do not exists
 	routeService, err := GetServiceInRoute(route, routeName)
@@ -128,12 +163,11 @@ func (su *ServiceUpdater) GetCreateOrUpdateBackend(route *vamprouter.Route, serv
 	}
 
 	// Updates the backend if needed
-	serviceHost := service.Spec.ClusterIP
-	if len(routeService.Servers) != 1 || routeService.Servers[0].Host != serviceHost {
+	if len(routeService.Servers) != 1 || routeService.Servers[0].Host != backendAddress {
 		routeService.Servers = []vamprouter.Server{
 			vamprouter.Server{
 				Name: routeName,
-				Host: serviceHost,
+				Host: backendAddress,
 				Port: 80,
 			},
 		}
@@ -199,8 +233,4 @@ func GetServiceInRoute(route *vamprouter.Route, serviceName string) (*vamprouter
 	}
 
 	return nil, errors.New(fmt.Sprintf("Unable to find service named %s", serviceName))
-}
-
-func (su *ServiceUpdater) CreateServiceRoute(service *api.Service) error {
-	return su.UpdateServiceRouting(service)
 }
