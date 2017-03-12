@@ -4,15 +4,28 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"strings"
+	"errors"
+	"fmt"
+	"os"
+	"github.com/sroze/kubernetes-vamp-router/vamprouter"
 
 	api "k8s.io/client-go/pkg/api/v1"
 )
 
-func GetServiceRouteName(service *api.Service) string {
+func GetRouteNameFromObjectMetadata(metadata api.ObjectMeta, separator string) string {
 	return GetDNSIdentifier(strings.Join([]string{
-		service.ObjectMeta.Name,
-		service.ObjectMeta.Namespace,
-	}, "."))
+		metadata.Name,
+		metadata.Namespace,
+	}, separator))
+}
+
+func GetDomainSeparator() string {
+	domainSeparator := os.Getenv("DOMAIN_NAME_SEPARATOR")
+	if "" == domainSeparator {
+		domainSeparator = "-"
+	}
+
+	return domainSeparator
 }
 
 func GetDNSIdentifier(name string) string {
@@ -24,19 +37,45 @@ func GetDNSIdentifier(name string) string {
 	return name
 }
 
-func (su *ServiceUpdater) GetDomainNamesFromService(service *api.Service) []string {
-	domainNames := GetDomainNamesFromServiceAnnotations(service)
-
-	// Add the default domain name
-	domainNames = append(domainNames, strings.Join([]string{
-		GetServiceRouteName(service),
-		su.Configuration.RootDns,
-	}, "."))
-
-	return domainNames
-}
-
 func GetMD5Hash(text string) string {
 	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
+}
+
+
+func GetFilterInRoute(route *vamprouter.Route, filterName string) (*vamprouter.Filter, error) {
+	for _, filter := range route.Filters {
+		if filter.Name == filterName {
+			return &filter, nil
+		}
+	}
+
+	return nil, errors.New(fmt.Sprintf("Unable to find filter named %s", filterName))
+}
+
+func ReplaceServiceInRoute(route *vamprouter.Route, serviceName string, service *vamprouter.Service) error {
+	serviceIndex := -1
+	for index, service := range route.Services {
+		if service.Name == serviceName {
+			serviceIndex = index
+		}
+	}
+
+	if serviceIndex == -1 {
+		return errors.New(fmt.Sprintf("Unable to find service named %s", serviceName))
+	}
+
+	route.Services[serviceIndex] = *service
+
+	return nil
+}
+
+func GetServiceInRoute(route *vamprouter.Route, serviceName string) (*vamprouter.Service, error) {
+	for _, service := range route.Services {
+		if service.Name == serviceName {
+			return &service, nil
+		}
+	}
+
+	return nil, errors.New(fmt.Sprintf("Unable to find service named %s", serviceName))
 }

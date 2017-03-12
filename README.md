@@ -37,8 +37,10 @@ docker run -d \
     --name=kubernetes-vamp-router \
     -e ROOT_DNS_DOMAIN=any.wildcarded.dns.address \
     -e CLUSTER_API_ADDRESS=https://username:password@your.master.cluster.address \
-    -e INSECURE_CLUSTER=true \
+    -e INSECURE_CLUSTER=yes \
     -e ROUTER_API_ADDRESS=http://your.router.api.address:10001/
+    -e WATCH_INGRESSES=yes
+    -e INGRESS_TYPE=vamp-router
     sroze/kubernetes-vamp-router
 ```
 
@@ -47,12 +49,16 @@ docker run -d \
 The configuration can be done by passing some environment variables. Here is the list and the meaning of all environment
 variables that the container is reading:
 
-- `CLUSTER_API_ADDRESS`: Address of the Kubernetes cluster API
-- `ROUTER_API_ADDRESS`: Address of the Vamp Router API
-- `ROOT_DNS_DOMAIN`: The root DNS address that needs to be used. Basically, this (sub)domain name should be a wildcard
-  to your front-end server on which your Vamp Server is running.
-- `INSECURE_CLUSTER`: If the value is `true`, then the SSL certification won't be checked. This should be used for
-  development purposes only!
+Variable | Description | Expected values | Default
+--- | --- | --- | ----
+`CLUSTER_API_ADDRESS` | Address of the Kubernetes cluster API | https://user:password@address | ø |
+`ROUTER_API_ADDRESS` | Address of the Vamp Router API | http://address:10001 | ø |
+`ROOT_DNS_DOMAIN` | The root DNS address that needs to be used. Basically, this (sub)domain name should be a wildcard to the Vamp Router | `.my-domain.net` | ø |
+`INSECURE_CLUSTER` | If the value is `yes`, then the SSL certification won't be checked. This should be used for development purposes only! | `yes` or `no` | `no` |
+`WATCH_SERVICES` | Needs to be `yes` if you want to watch `LoadBalancer` services | `yes` or `no` | `no` |
+`WATCH_INGRESSES` | Needs to be `yes` if you want to watch ingresses | `yes` or `no` | `yes` |
+`INGRESS_TYPE` | The type of ingresses to watch | string | `vamp-router` |
+`DOMAIN_NAME_SEPARATOR` | The separator used to create the final domain name | string | `-` |
 
 ### Where to run these containers?
 
