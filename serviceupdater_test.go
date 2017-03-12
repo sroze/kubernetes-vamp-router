@@ -229,7 +229,7 @@ func FeatureContext(s *godog.Suite) {
 			ObjectRoutingResolver: &ServiceUpdater{
 				ServiceRepository: NewInMemoryServiceRepository(),
 				Configuration: Configuration{
-					RootDns: "example.com",
+					RootDns: ".example.com",
 				},
 			},
 		}

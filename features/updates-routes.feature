@@ -14,16 +14,16 @@ Feature:
   Scenario: VR Filter & Service created
     Given a vamp route named "http" already exists
     When the k8s service named "app" is created
-    Then the vamp filter named "app.qwerty.example.com" should be created
-    And the vamp service "app.qwerty" should be created
-    And the vamp service "app.qwerty" should only contain the backend "1.2.3.4"
+    Then the vamp filter named "app-qwerty.example.com" should be created
+    And the vamp service "app-qwerty" should be created
+    And the vamp service "app-qwerty" should only contain the backend "1.2.3.4"
 
   Scenario: Updates the backend address if the service changes
     Given a vamp route named "http" already exists
     When the k8s service named "app" is created
     And the k8s service "app" IP is "2.3.4.5"
     And the k8s service named "app" is updated
-    Then the vamp service "app.qwerty" should only contain the backend "2.3.4.5"
+    Then the vamp service "app-qwerty" should only contain the backend "2.3.4.5"
 
   Scenario: Should not update the service if nothing changed
     Given a vamp route named "http" already exists

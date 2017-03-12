@@ -4,7 +4,6 @@ import (
 	api "k8s.io/client-go/pkg/api/v1"
 	"log"
 	"fmt"
-	"strings"
 )
 
 type ServiceRepository interface {
@@ -103,10 +102,7 @@ func (su *ServiceUpdater) GetDomainNames(object KubernetesBackendObject) ([]stri
 
 	// Add the default domain name
 	domainSeparator := GetDomainSeparator()
-	domainNames = append(domainNames, strings.Join([]string{
-		GetRouteNameFromObjectMetadata(service.ObjectMeta, domainSeparator),
-		su.Configuration.RootDns,
-	}, domainSeparator))
+	domainNames = append(domainNames, GetRouteNameFromObjectMetadata(service.ObjectMeta, domainSeparator)+su.Configuration.RootDns)
 
 	return domainNames, nil
 }

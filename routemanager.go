@@ -98,6 +98,7 @@ func (rm *VampRouteManager) UpdateRouteIfNeeded(object KubernetesBackendObject) 
 			continue
 		}
 
+		log.Println("Added the filter", filterName, "for the hostname", domainName, "to the backend", backendAddress)
 		filter = &vamprouter.Filter{
 			Name:        filterName,
 			Condition:   "hdr(Host) -i " + domainName,

@@ -3,7 +3,6 @@ package k8svamprouter
 import (
 	"log"
 	"fmt"
-	"strings"
 
 	v1beta1 "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	client "k8s.io/client-go/kubernetes"
@@ -44,10 +43,7 @@ func (irm *IngressRoutingManager) GetDomainNames(object KubernetesBackendObject)
 	domainSeparator := GetDomainSeparator()
 
 	domainNames := []string{
-		strings.Join([]string{
-			GetRouteNameFromObjectMetadata(ingress.ObjectMeta, domainSeparator),
-			irm.Configuration.RootDns,
-		}, domainSeparator),
+		GetRouteNameFromObjectMetadata(ingress.ObjectMeta, domainSeparator)+irm.Configuration.RootDns,
 	}
 
 	return domainNames, nil

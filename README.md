@@ -53,7 +53,7 @@ Variable | Description | Expected values | Default
 --- | --- | --- | ----
 `CLUSTER_API_ADDRESS` | Address of the Kubernetes cluster API | https://user:password@address | ø |
 `ROUTER_API_ADDRESS` | Address of the Vamp Router API | http://address:10001 | ø |
-`ROOT_DNS_DOMAIN` | The root DNS address that needs to be used. Basically, this (sub)domain name should be a wildcard to the Vamp Router | my-domain.net | ø |
+`ROOT_DNS_DOMAIN` | The root DNS address that needs to be used. Basically, this (sub)domain name should be a wildcard to the Vamp Router | `.my-domain.net` | ø |
 `INSECURE_CLUSTER` | If the value is `yes`, then the SSL certification won't be checked. This should be used for development purposes only! | `yes` or `no` | `no` |
 `WATCH_SERVICES` | Needs to be `yes` if you want to watch `LoadBalancer` services | `yes` or `no` | `no` |
 `WATCH_INGRESSES` | Needs to be `yes` if you want to watch ingresses | `yes` or `no` | `yes` |
