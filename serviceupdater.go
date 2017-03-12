@@ -37,10 +37,41 @@ func ServiceHasLoadBalancerAddress(service *api.Service) bool {
 	return false
 }
 
+func ServiceExposesPort(service *api.Service, port int32) bool {
+	for _, exposedPort := range service.Spec.Ports {
+		if exposedPort.Port == port {
+			return true
+		}
+	}
+
+	return false
+}
+
 // START
 // Implementation of `ObjectRoutingResolver`
 //
-func (su *ServiceUpdater) UpdateObjectWithDomainNames(object KubernetesBackendObject) error {
+func (su *ServiceUpdater) ShouldHandleObject(object KubernetesBackendObject) bool {
+	service, ok := object.(*api.Service)
+	if !ok {
+		log.Println("[error] Get get only from `Service` objects")
+
+		return false
+	}
+
+	if service.Spec.Type != api.ServiceTypeLoadBalancer {
+		log.Println("Skipping service", service.ObjectMeta.Name, "as it is not a LoadBalancer")
+
+		return false
+	} else if !ServiceExposesPort(service, 80) {
+		log.Println("Skipping service", service.ObjectMeta.Name, "because HTTP port is not exposed, other ports are NOT SUPPORTED")
+
+		return false
+	}
+
+	return true
+}
+
+func (su *ServiceUpdater) UpdateObjectWithDomainNames(object KubernetesBackendObject, domainNames []string) error {
 	service, ok := object.(*api.Service)
 	if !ok {
 		return fmt.Errorf("Get get only from `Service` objects")
@@ -52,23 +83,12 @@ func (su *ServiceUpdater) UpdateObjectWithDomainNames(object KubernetesBackendOb
 		return nil
 	}
 
-	domainNames, err := su.GetDomainNames(service)
-	if err != nil {
-		return err
-	}
-
 	log.Println("Found route for the service", service.ObjectMeta.Name, "updating the service load-balancer status")
 	service.Status = api.ServiceStatus{
-		LoadBalancer: api.LoadBalancerStatus{
-			Ingress: []api.LoadBalancerIngress{
-				api.LoadBalancerIngress{
-					Hostname: domainNames[0],
-				},
-			},
-		},
+		LoadBalancer: CreateLoadBalancerStatusFromDomainNames(domainNames),
 	}
 
-	_, err = su.ServiceRepository.Update(service)
+	_, err := su.ServiceRepository.Update(service)
 
 	return err
 }
@@ -82,10 +102,11 @@ func (su *ServiceUpdater) GetDomainNames(object KubernetesBackendObject) ([]stri
 	domainNames := GetDomainNamesFromServiceAnnotations(service)
 
 	// Add the default domain name
+	domainSeparator := GetDomainSeparator()
 	domainNames = append(domainNames, strings.Join([]string{
-		GetServiceRouteName(service),
+		GetRouteNameFromObjectMetadata(service.ObjectMeta, domainSeparator),
 		su.Configuration.RootDns,
-	}, "."))
+	}, domainSeparator))
 
 	return domainNames, nil
 }
@@ -96,7 +117,7 @@ func (su *ServiceUpdater) GetRouteName(object KubernetesBackendObject) (string, 
 		return "", fmt.Errorf("Get get only from `Service` objects")
 	}
 
-	return GetServiceRouteName(service), nil
+	return GetRouteNameFromObjectMetadata(service.ObjectMeta, GetDomainSeparator()), nil
 }
 
 func (su *ServiceUpdater) GetBackendAddress(object KubernetesBackendObject) (string, error) {

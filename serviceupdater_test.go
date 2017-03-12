@@ -226,7 +226,7 @@ func FeatureContext(s *godog.Suite) {
 	s.BeforeScenario(func(interface{}) {
 		routeManager = &VampRouteManager{
 			RouterClient: NewInMemoryVampRouterClient(),
-			objectRoutingResolver: &ServiceUpdater{
+			ObjectRoutingResolver: &ServiceUpdater{
 				ServiceRepository: NewInMemoryServiceRepository(),
 				Configuration: Configuration{
 					RootDns: "example.com",

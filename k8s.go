@@ -42,3 +42,13 @@ func GetDomainNamesFromServiceAnnotations(service *api.Service) []string {
 
 	return domainNames
 }
+
+func CreateLoadBalancerStatusFromDomainNames(domainNames []string) api.LoadBalancerStatus {
+	return api.LoadBalancerStatus{
+		Ingress: []api.LoadBalancerIngress{
+			api.LoadBalancerIngress{
+				Hostname: domainNames[0],
+			},
+		},
+	}
+}

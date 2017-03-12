@@ -6,16 +6,26 @@ import (
 	"strings"
 	"errors"
 	"fmt"
+	"os"
 	"github.com/sroze/kubernetes-vamp-router/vamprouter"
 
 	api "k8s.io/client-go/pkg/api/v1"
 )
 
-func GetServiceRouteName(service *api.Service) string {
+func GetRouteNameFromObjectMetadata(metadata api.ObjectMeta, separator string) string {
 	return GetDNSIdentifier(strings.Join([]string{
-		service.ObjectMeta.Name,
-		service.ObjectMeta.Namespace,
-	}, "."))
+		metadata.Name,
+		metadata.Namespace,
+	}, separator))
+}
+
+func GetDomainSeparator() string {
+	domainSeparator := os.Getenv("DOMAIN_NAME_SEPARATOR")
+	if "" == domainSeparator {
+		domainSeparator = "-"
+	}
+
+	return domainSeparator
 }
 
 func GetDNSIdentifier(name string) string {

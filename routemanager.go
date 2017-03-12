@@ -14,25 +14,26 @@ type VampRouteManager struct {
 	RouterClient vamprouter.Interface
 
 	// Object Routing Resolver
-	objectRoutingResolver ObjectRoutingResolver
+	ObjectRoutingResolver ObjectRoutingResolver
 }
 
 type ObjectRoutingResolver interface {
 	GetDomainNames(object KubernetesBackendObject) ([]string, error)
 	GetRouteName(object KubernetesBackendObject) (string, error)
 	GetBackendAddress(object KubernetesBackendObject) (string, error)
-	UpdateObjectWithDomainNames(object KubernetesBackendObject) error
+	UpdateObjectWithDomainNames(object KubernetesBackendObject, domainNames []string) error
+	ShouldHandleObject(object KubernetesBackendObject) bool
 }
 
 func (rm *VampRouteManager) UpdateObjectRouting(object KubernetesBackendObject) error {
-	err := rm.UpdateRouteIfNeeded(object)
+	domainNames, err := rm.UpdateRouteIfNeeded(object)
 	if err != nil {
 		log.Println("Unable to update object route", err)
 
 		return err
 	}
 
-	err = rm.objectRoutingResolver.UpdateObjectWithDomainNames(object)
+	err = rm.ObjectRoutingResolver.UpdateObjectWithDomainNames(object, domainNames)
 	if err != nil {
 		log.Println("Error while updating the object:", err)
 
@@ -52,20 +53,24 @@ func (rm *VampRouteManager) CreateObjectRoute(object KubernetesBackendObject) er
 	return rm.UpdateObjectRouting(object)
 }
 
-func (rm *VampRouteManager) UpdateRouteIfNeeded(object KubernetesBackendObject) error {
+func (rm *VampRouteManager) ShouldHandleObject(object KubernetesBackendObject) bool {
+	return rm.ObjectRoutingResolver.ShouldHandleObject(object)
+}
+
+func (rm *VampRouteManager) UpdateRouteIfNeeded(object KubernetesBackendObject) ([]string, error) {
 	route, err := rm.GetOrCreateHttpRoute()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	routeName, err := rm.objectRoutingResolver.GetRouteName(object)
+	routeName, err := rm.ObjectRoutingResolver.GetRouteName(object)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	backendAddress, err := rm.objectRoutingResolver.GetBackendAddress(object)
+	backendAddress, err := rm.ObjectRoutingResolver.GetBackendAddress(object)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	backend, updated, err := rm.GetCreateOrUpdateBackend(
@@ -75,13 +80,13 @@ func (rm *VampRouteManager) UpdateRouteIfNeeded(object KubernetesBackendObject) 
 	)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Create the filters
-	domainNames, err := rm.objectRoutingResolver.GetDomainNames(object)
+	domainNames, err := rm.ObjectRoutingResolver.GetDomainNames(object)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, domainName := range domainNames {
@@ -106,10 +111,10 @@ func (rm *VampRouteManager) UpdateRouteIfNeeded(object KubernetesBackendObject) 
 	if updated {
 		_, err = rm.RouterClient.UpdateRoute(route)
 
-		return err
+		return domainNames, err
 	}
 
-	return nil
+	return domainNames, nil
 }
 
 func (rm *VampRouteManager) GetCreateOrUpdateBackend(route *vamprouter.Route, routeName string, backendAddress string) (*vamprouter.Service, bool, error) {

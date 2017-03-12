@@ -4,6 +4,9 @@ import:
   version: v2.0.0
   subpackages:
   - kubernetes
+  - pkg/watch
+  - pkg/fields
+  - pkg/labels
 testImport:
 - package: github.com/DATA-DOG/godog
   version: ^0.6.3
