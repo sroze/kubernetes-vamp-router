@@ -1,0 +1,11 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "vamp-router"
+  name: vamp-ingress 
+spec:
+  backend:
+    serviceName: web 
+    servicePort: 80
+

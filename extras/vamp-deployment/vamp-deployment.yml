@@ -1,0 +1,43 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: vamp-router
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component-identifier: vamp-router 
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        component-identifier: vamp-router
+      name: vamp-router
+    spec:
+      containers:
+      - image: magneticio/vamp-router:latest
+        imagePullPolicy: Always
+        name: vamp-router
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 443
+          name: https
+          protocol: TCP
+        - containerPort: 10001
+          name: api
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 10001
+          timeoutSeconds: 1
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
