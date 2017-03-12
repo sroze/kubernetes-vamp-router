@@ -58,7 +58,7 @@ func (client *InMemoryVampRouterClient) CreateRoute(route *vamprouter.Route) (*v
 	return route, nil
 }
 
-var updater *ServiceUpdater
+var routeManager *VampRouteManager
 
 func GetCreatedServiceInRoute(route *vamprouter.Route, serviceName string) (vamprouter.Service, error) {
 	for _, service := range route.Services {
@@ -84,7 +84,7 @@ func GetCreatedFilterInRoute(route *vamprouter.Route, filterName string) (vampro
  * GIVEN
  */
 func aVampRouteNamedAlreadyExists(routeName string) error {
-	_, err := updater.RouterClient.CreateRoute(&vamprouter.Route{
+	_, err := routeManager.RouterClient.CreateRoute(&vamprouter.Route{
 		Name:     "http",
 		Port:     80,
 		Protocol: vamprouter.ProtocolHttp,
@@ -103,7 +103,7 @@ func theKsServiceNamedisCreated(serviceName string) error {
 		return err
 	}
 
-	return updater.CreateServiceRoute(service)
+	return routeManager.CreateObjectRoute(service)
 }
 
 func theKsServiceNamedisUpdated(serviceName string) error {
@@ -112,11 +112,11 @@ func theKsServiceNamedisUpdated(serviceName string) error {
 		return err
 	}
 
-	return updater.UpdateServiceRouting(service)
+	return routeManager.UpdateObjectRouting(service)
 }
 
 func aKsServiceNamedIsCreatedInTheNamespace(serviceName string, namespaceName string) error {
-	return updater.CreateServiceRoute(&api.Service{
+	return routeManager.CreateObjectRoute(&api.Service{
 		ObjectMeta: api.ObjectMeta{
 			Name:      serviceName,
 			Namespace: namespaceName,
@@ -125,7 +125,7 @@ func aKsServiceNamedIsCreatedInTheNamespace(serviceName string, namespaceName st
 }
 
 func aKsServiceNamedIsCreatedInTheNamespaceWithTheIP(serviceName string, namespaceName string, IP string) error {
-	return updater.CreateServiceRoute(&api.Service{
+	return routeManager.CreateObjectRoute(&api.Service{
 		ObjectMeta: api.ObjectMeta{
 			Name:      serviceName,
 			Namespace: namespaceName,
@@ -137,7 +137,7 @@ func aKsServiceNamedIsCreatedInTheNamespaceWithTheIP(serviceName string, namespa
 }
 
 func aKsServiceNamedIsUpdatedInTheNamespaceWithTheIP(serviceName string, namespaceName string, IP string) error {
-	return updater.UpdateServiceRouting(&api.Service{
+	return routeManager.UpdateObjectRouting(&api.Service{
 		ObjectMeta: api.ObjectMeta{
 			Name:      serviceName,
 			Namespace: namespaceName,
@@ -153,7 +153,7 @@ func aKsServiceNamedIsUpdatedInTheNamespaceWithTheIP(serviceName string, namespa
  */
 
 func theVampServiceShouldBeCreated(serviceName string) error {
-	route, err := updater.RouterClient.GetRoute("http")
+	route, err := routeManager.RouterClient.GetRoute("http")
 	if err != nil {
 		return err
 	}
@@ -163,13 +163,13 @@ func theVampServiceShouldBeCreated(serviceName string) error {
 }
 
 func theVampRouteShouldBeCreated(routeName string) error {
-	_, err := updater.RouterClient.GetRoute(routeName)
+	_, err := routeManager.RouterClient.GetRoute(routeName)
 
 	return err
 }
 
 func theVampFilterNamedShouldBeCreated(filterName string) error {
-	route, err := updater.RouterClient.GetRoute("http")
+	route, err := routeManager.RouterClient.GetRoute("http")
 	if err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func theVampFilterNamedShouldBeCreated(filterName string) error {
 }
 
 func theVampRouteShouldNotBeUpdated() error {
-	client := updater.RouterClient.(*InMemoryVampRouterClient)
+	client := routeManager.RouterClient.(*InMemoryVampRouterClient)
 	defer client.Clear()
 
 	if len(client.UpdatedRoutes) > 0 {
@@ -190,7 +190,7 @@ func theVampRouteShouldNotBeUpdated() error {
 }
 
 func theVampRouteShouldBeUpdated() error {
-	client := updater.RouterClient.(*InMemoryVampRouterClient)
+	client := routeManager.RouterClient.(*InMemoryVampRouterClient)
 	defer client.Clear()
 
 	if len(client.UpdatedRoutes) != 0 {
@@ -201,7 +201,7 @@ func theVampRouteShouldBeUpdated() error {
 }
 
 func theVampServiceShouldOnlyContainTheBackend(serviceName string, IP string) error {
-	route, err := updater.RouterClient.GetRoute("http")
+	route, err := routeManager.RouterClient.GetRoute("http")
 	if err != nil {
 		return err
 	}
@@ -224,11 +224,13 @@ func theVampServiceShouldOnlyContainTheBackend(serviceName string, IP string) er
 
 func FeatureContext(s *godog.Suite) {
 	s.BeforeScenario(func(interface{}) {
-		updater = &ServiceUpdater{
-			ServiceRepository: NewInMemoryServiceRepository(),
-			RouterClient:      NewInMemoryVampRouterClient(),
-			Configuration: Configuration{
-				RootDns: "example.com",
+		routeManager = &VampRouteManager{
+			RouterClient: NewInMemoryVampRouterClient(),
+			objectRoutingResolver: &ServiceUpdater{
+				ServiceRepository: NewInMemoryServiceRepository(),
+				Configuration: Configuration{
+					RootDns: "example.com",
+				},
 			},
 		}
 	})
